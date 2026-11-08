@@ -1,0 +1,26 @@
+name: TikTok auth
+on:
+  workflow_dispatch:
+    inputs:
+      code:
+        description: "Codice mostrato dalla pagina di callback dopo l'autorizzazione"
+        required: true
+permissions:
+  contents: write
+jobs:
+  auth:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Scambia il codice e salva il token cifrato
+        env:
+          TT_CLIENT_KEY: ${{ secrets.TT_CLIENT_KEY }}
+          TT_CLIENT_SECRET: ${{ secrets.TT_CLIENT_SECRET }}
+          TT_TOKEN_PASSPHRASE: ${{ secrets.TT_TOKEN_PASSPHRASE }}
+          CODE: ${{ inputs.code }}
+        run: |
+          [ -n "$TT_TOKEN_PASSPHRASE" ] || { echo "Manca il secret TT_TOKEN_PASSPHRASE"; exit 1; }
+          python3 scripts/tiktok.py auth "$CODE"
+          openssl enc -aes-256-cbc -pbkdf2 -salt -pass env:TT_TOKEN_PASSPHRASE -in /tmp/refresh_token -out tiktok_token.enc
+          git config user.name "github-actions"; git config user.email "actions@users.noreply.github.com"
+          git add tiktok_token.enc; git commit -m "Aggiorna token TikTok cifrato"; git push
