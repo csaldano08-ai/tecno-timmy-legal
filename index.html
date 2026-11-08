@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tecno Timmy Publisher</title>
+<style>body{font-family:system-ui,sans-serif;max-width:640px;margin:3rem auto;padding:0 1rem;line-height:1.5}code,textarea{width:100%;box-sizing:border-box;font-family:monospace}</style></head>
+<body>
+<h1>Tecno Timmy Publisher</h1>
+<p>Strumento usato dal canale Tecno Timmy per pubblicare i propri video su TikTok.</p>
+<p><a href="privacy.html">Privacy</a> · <a href="terms.html">Termini di servizio</a></p>
+<div id="cb" hidden>
+<h2>Autorizzazione completata</h2>
+<p>Copia questo codice e incollalo nel workflow <b>TikTok auth</b> su GitHub. Non condividerlo con nessuno.</p>
+<textarea id="code" rows="4" readonly></textarea>
+</div>
+<script>
+var p=new URLSearchParams(location.search),c=p.get("code");
+if(c){document.getElementById("cb").hidden=false;document.getElementById("code").value=c;}
+</script>
+</body></html>

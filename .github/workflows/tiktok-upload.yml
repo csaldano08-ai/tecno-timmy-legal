@@ -1,0 +1,36 @@
+name: TikTok upload
+on:
+  workflow_dispatch:
+    inputs:
+      video:
+        description: "Percorso di un mp4 nel repository oppure URL https diretto"
+        required: true
+permissions:
+  contents: write
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepara il video
+        env:
+          VIDEO: ${{ inputs.video }}
+        run: |
+          case "$VIDEO" in
+            https://*) curl -fsSL "$VIDEO" -o /tmp/video.mp4 ;;
+            *) cp "$VIDEO" /tmp/video.mp4 ;;
+          esac
+      - name: Carica su TikTok come bozza
+        env:
+          TT_CLIENT_KEY: ${{ secrets.TT_CLIENT_KEY }}
+          TT_CLIENT_SECRET: ${{ secrets.TT_CLIENT_SECRET }}
+          TT_TOKEN_PASSPHRASE: ${{ secrets.TT_TOKEN_PASSPHRASE }}
+        run: |
+          export TT_REFRESH_TOKEN="$(openssl enc -d -aes-256-cbc -pbkdf2 -pass env:TT_TOKEN_PASSPHRASE -in tiktok_token.enc)"
+          echo "::add-mask::$TT_REFRESH_TOKEN"
+          python3 scripts/tiktok.py upload /tmp/video.mp4
+          openssl enc -aes-256-cbc -pbkdf2 -salt -pass env:TT_TOKEN_PASSPHRASE -in /tmp/refresh_token -out tiktok_token.enc
+          if ! git diff --quiet; then
+            git config user.name "github-actions"; git config user.email "actions@users.noreply.github.com"
+            git add tiktok_token.enc; git commit -m "Aggiorna token TikTok cifrato"; git push
+          fi
